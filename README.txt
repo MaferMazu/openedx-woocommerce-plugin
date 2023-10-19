@@ -12,7 +12,7 @@ You can sell your Open edX courses with WooCommerce using this free and open-sou
 
 == Description ==
 
-The "Open edX Ecommerce" package is a free and open-source WordPress plugin that allows you to integrate WooCommerce with your Open edX platform.
+.The "Open edX Ecommerce" package is a free and open-source WordPress plugin that allows you to integrate WooCommerce with your Open edX platform.
 
 **What does this mean?**
 You can create Open edX courses as products in WooCommerce, and when you perform purchase or refund operations for these products, your Open edX platform will reflect these changes.
