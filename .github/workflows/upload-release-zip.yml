@@ -1,11 +1,7 @@
 name: Build & Upload zip
 
 # Only trigger, when the build workflow succeeded
-on:
-  workflow_run:
-    workflows: ["Continuous Integration"]
-    types:
-      - completed
+on: workflow_dispatch
 
 jobs:
   upload_zip:
@@ -26,7 +22,7 @@ jobs:
         with:
           type: 'zip'
           filename: 'openedx-commerce.zip'
-          exclusions: '*.git*'
+          exclusions: '.*'
 
       - name: Upload zip to latest release
         uses: xresloader/upload-to-github-release@v1
