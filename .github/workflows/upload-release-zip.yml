@@ -22,7 +22,7 @@ jobs:
         with:
           type: 'zip'
           filename: 'openedx-commerce.zip'
-          exclusions: '.*'
+          exclusions: '*.git*'
 
       - name: Upload zip to latest release
         uses: xresloader/upload-to-github-release@v1
