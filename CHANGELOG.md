@@ -1,3 +1,12 @@
+## v2.0.3 - 2024-04-05
+
+### [2.0.3](https://github.com/MaferMazu/openedx-woocommerce-plugin/compare/v2.0.2...v2.0.3) (2024-04-05)
+
+### Bug Fixes
+
+* test ([be5c49e](https://github.com/MaferMazu/openedx-woocommerce-plugin/commit/be5c49e58ea8f89cc686abed4d87fe5303cfaa68))
+* zip generation ([6baf355](https://github.com/MaferMazu/openedx-woocommerce-plugin/commit/6baf3556e86757f2b7b37cde25479a5c15cb9f9f))
+
 ## v2.0.2 - 2023-12-20
 
 ### [2.0.2](https://github.com/openedx/openedx-wordpress-ecommerce/compare/v2.0.1...v2.0.2) (2023-12-20)
