@@ -8,6 +8,8 @@ jobs:
   publish_wordpress:
     if: github.event.release.prerelease == false
     runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
     steps:
     - name: Check zip asset exists in release
       id: check_zip
