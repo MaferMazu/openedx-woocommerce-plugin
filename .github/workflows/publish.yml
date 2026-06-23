@@ -1,4 +1,4 @@
-name: Publish to WordPress and upload zip to the release
+name: Upload zip to the release and publish in WP if the release is published
 
 on:
   release:
@@ -48,7 +48,7 @@ jobs:
       run: gh release upload "$RELEASE_TAG" openedx-commerce.zip --clobber
 
   publish_wordpress:
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published' && github.event.release.prerelease == false
     runs-on: ubuntu-latest
     steps:
     - name: Check zip asset exists in release
