@@ -1,54 +1,12 @@
-name: Upload zip to the release and publish in WP if the release is published
+name: Publish in WP when release is published and includes zip
 
 on:
   release:
-    types: [created, edited, published]
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Release tag to upload the zip asset to
-        required: true
-        type: string
+    types: [published]
 
 jobs:
-  upload_release_zip:
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'release' &&
-        github.event.release.draft == true &&
-        (github.event.action == 'created' || github.event.action == 'edited')
-      )
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      with:
-        ref: ${{ github.event.release.tag_name || inputs.release_tag }}
-
-    - name: Install Composer dependencies
-      uses: ramsey/composer-install@26d8a556604053a9612623447203a691f406fbe6 # v4
-      with:
-        composer-options: "--no-dev"
-
-    - name: Prepare the openedx-commerce directory for the release
-      run: |
-        make release
-
-    - name: Create a zip file
-      uses: thedoctor0/zip-release@b57d897cb5d60cb78b51a507f63fa184cfe35554 # 0.7.6
-      with:
-        type: 'zip'
-        command: 'cd ./openedx-commerce'
-        filename: '../openedx-commerce.zip'
-
-    - name: Upload zip to the draft GitHub release
-      env:
-        GH_TOKEN: ${{ secrets.WC_PAT }}
-        RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
-      run: gh release upload "$RELEASE_TAG" openedx-commerce.zip --clobber
-
   publish_wordpress:
-    if: github.event_name == 'release' && github.event.action == 'published' && github.event.release.prerelease == false
+    if: github.event.release.prerelease == false
     runs-on: ubuntu-latest
     steps:
     - name: Check zip asset exists in release
