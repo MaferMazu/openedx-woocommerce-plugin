@@ -80,12 +80,6 @@ jobs:
       if: steps.check_zip.outputs.zip_found == 'true'
       run: unzip -o openedx-commerce.zip -d openedx-commerce
 
-    - name: Publish to WordPress SVN
+    - name: Check openedx-commerce directory access
       if: steps.check_zip.outputs.zip_found == 'true'
-      uses: ./.github/actions/svn-publish
-      with:
-        svn-repository: https://plugins.svn.wordpress.org/openedx-commerce/
-        svn-username: ${{ secrets.WORDPRESS_SVN_USERNAME }}
-        svn-password: ${{ secrets.WORDPRESS_SVN_PASSWORD }}
-        assets-directory: ../docs/source/_images/plugin-page
-        working-directory: openedx-commerce
+      run: cd openedx-commerce && pwd
