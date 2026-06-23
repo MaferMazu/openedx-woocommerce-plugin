@@ -1,15 +1,29 @@
-name: Publish to WordPress and upload zip to the latest release
+name: Publish to WordPress and upload zip to the release
 
 on:
   release:
-    types: [published]
+    types: [created, edited, published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to upload the zip asset to
+        required: true
+        type: string
 
 jobs:
-  build:
+  upload_release_zip:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'release' &&
+        github.event.release.draft == true &&
+        (github.event.action == 'created' || github.event.action == 'edited')
+      )
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.release_tag }}
 
     - name: Install Composer dependencies
       uses: ramsey/composer-install@26d8a556604053a9612623447203a691f406fbe6 # v4
@@ -27,20 +41,45 @@ jobs:
         command: 'cd ./openedx-commerce'
         filename: '../openedx-commerce.zip'
 
-    - name: Upload zip to the latest GitHub release
-      uses: xresloader/upload-to-github-release@7c5757a90c0bcf0c0e1741da8f2abd7b85e675d0 # v1.6.2
+    - name: Upload zip to the draft GitHub release
       env:
-        GITHUB_TOKEN: ${{ secrets.WC_PAT }}
-      with:
-        file: "openedx-commerce.zip"
-        update_latest_release: true
-        draft: false
+        GH_TOKEN: ${{ secrets.WC_PAT }}
+        RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+      run: gh release upload "$RELEASE_TAG" openedx-commerce.zip --clobber
 
-    - name: Publish to WordPress SVN
-      uses: ./.github/actions/svn-publish
+  publish_wordpress:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check zip asset exists in release
+      id: check_zip
+      env:
+        GH_TOKEN: ${{ secrets.WC_PAT }}
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: |
+        if gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | grep -q '^openedx-commerce\.zip$'; then
+          echo "zip_found=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "::warning::openedx-commerce.zip not found in release assets for $RELEASE_TAG. Skipping WordPress publish."
+          echo "zip_found=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      if: steps.check_zip.outputs.zip_found == 'true'
       with:
-        svn-repository: https://plugins.svn.wordpress.org/openedx-commerce/
-        svn-username: ${{ secrets.WORDPRESS_SVN_USERNAME }}
-        svn-password: ${{ secrets.WORDPRESS_SVN_PASSWORD }}
-        assets-directory: ../docs/source/_images/plugin-page
-        working-directory: openedx-commerce
+        ref: ${{ github.event.release.tag_name }}
+
+    - name: Download zip from release
+      if: steps.check_zip.outputs.zip_found == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.WC_PAT }}
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: gh release download "$RELEASE_TAG" --pattern "openedx-commerce.zip"
+
+    - name: Extract zip
+      if: steps.check_zip.outputs.zip_found == 'true'
+      run: unzip -o openedx-commerce.zip -d openedx-commerce
+
+    - name: Check openedx-commerce directory access
+      if: steps.check_zip.outputs.zip_found == 'true'
+      run: cd openedx-commerce && pwd
